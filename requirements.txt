@@ -15,7 +15,6 @@ PyYAML==6.0.2
 Requests==2.32.3
 safetensors==0.4.5
 scipy==1.14.1
-sensor_msgs==1.13.1
 tensorflow==2.15.0
 tensorflow_datasets==4.9.3
 tensorflow_graphics==2021.12.3
