@@ -4,15 +4,19 @@ export NCCL_SOCKET_IFNAME=en,eth,em,bond,ib #bond0
 export NCCL_DEBUG=INFO
 export NCCL_NVLS_ENABLE=0
 
+export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
+
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
-export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
-export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M/"
+export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M/"
+export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-1b/"
 
 # export TEXT_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/t5-v1_1-xxl/"
 # export VISION_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/"
 # export PRETRAIN_MODEL_PATH="/datahdd_8T/vla_pizza/RDT_module_params/rdt-170m/"
+# export PRETRAIN_MODEL_PATH="/datahdd_8T/vla_pizza/RDT_module_params/rdt-1b/"
 # export OUTPUT_DIR="/datahdd_8T/vla_pizza/rdt_checkpoint/170M/"
+# export OUTPUT_DIR="/datahdd_8T/vla_pizza/rdt_checkpoint/1000M/"
 export CFLAGS="-I/usr/include"
 export LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
 export CUTLASS_PATH="/path/to/cutlass"
@@ -37,8 +41,8 @@ deepspeed --hostfile=hostfile.txt main.py \
     --pretrained_text_encoder_name_or_path=$TEXT_ENCODER_NAME \
     --pretrained_vision_encoder_name_or_path=$VISION_ENCODER_NAME \
     --output_dir=$OUTPUT_DIR \
-    --train_batch_size=32 \
-    --sample_batch_size=32 \
+    --train_batch_size=4 \
+    --sample_batch_size=4 \
     --max_train_steps=200000 \
     --checkpointing_period=1000 \
     --sample_period=500 \
