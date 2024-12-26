@@ -1,0 +1,29 @@
+2024-12-17 18:09:23,233 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Current SDK version is 0.17.5
+2024-12-17 18:09:23,233 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Configure stats pid to 2413423
+2024-12-17 18:09:23,233 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Loading settings from /home/v-wenhuitan/.config/wandb/settings
+2024-12-17 18:09:23,233 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Loading settings from /home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/wandb/settings
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Loading settings from environment variables: {'project': 'robotics_diffusion_transformer'}
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'main.py', 'program_abspath': '/home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/main.py', 'program': '/home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/main.py'}
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_setup.py:_flush():76] Applying login settings: {}
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_init.py:_log_setup():529] Logging user logs to /home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/wandb/run-20241217_180923-02drjval/logs/debug.log
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_init.py:_log_setup():530] Logging internal logs to /home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/wandb/run-20241217_180923-02drjval/logs/debug-internal.log
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_init.py:init():569] calling init triggers
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_init.py:init():576] wandb.init called with sweep_config: {}
+config: {}
+2024-12-17 18:09:23,234 INFO    MainThread:2413423 [wandb_init.py:init():619] starting backend
+2024-12-17 18:09:23,235 INFO    MainThread:2413423 [wandb_init.py:init():623] setting up manager
+2024-12-17 18:09:23,237 INFO    MainThread:2413423 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2024-12-17 18:09:23,239 INFO    MainThread:2413423 [wandb_init.py:init():631] backend started and connected
+2024-12-17 18:09:23,243 INFO    MainThread:2413423 [wandb_init.py:init():720] updated telemetry
+2024-12-17 18:09:23,253 INFO    MainThread:2413423 [wandb_init.py:init():753] communicating run to backend with 90.0 second timeout
+2024-12-17 18:09:23,958 INFO    MainThread:2413423 [wandb_run.py:_on_init():2435] communicating current version
+2024-12-17 18:09:24,222 INFO    MainThread:2413423 [wandb_run.py:_on_init():2444] got version response upgrade_message: "wandb version 0.19.1 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2024-12-17 18:09:24,223 INFO    MainThread:2413423 [wandb_init.py:init():804] starting run threads in backend
+2024-12-17 18:09:28,963 INFO    MainThread:2413423 [wandb_run.py:_console_start():2413] atexit reg
+2024-12-17 18:09:28,964 INFO    MainThread:2413423 [wandb_run.py:_redirect():2255] redirect: wrap_raw
+2024-12-17 18:09:28,964 INFO    MainThread:2413423 [wandb_run.py:_redirect():2320] Wrapping output streams.
+2024-12-17 18:09:28,964 INFO    MainThread:2413423 [wandb_run.py:_redirect():2345] Redirects installed.
+2024-12-17 18:09:28,966 INFO    MainThread:2413423 [wandb_init.py:init():847] run started, returning control to user process
+2024-12-17 18:09:28,967 INFO    MainThread:2413423 [wandb_run.py:_config_callback():1382] config_cb None None {'config_path': 'configs/base.yaml', 'deepspeed': './configs/zero2.json', 'pretrained_text_encoder_name_or_path': '/datahdd_8T/vla_pizza/RDT_module_params/t5-v1_1-xxl/', 'pretrained_vision_encoder_name_or_path': '/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/', 'output_dir': '/datahdd_8T/vla_pizza/rdt_checkpoint/170M/', 'seed': None, 'load_from_hdf5': True, 'train_batch_size': 32, 'sample_batch_size': 64, 'num_sample_batches': 2, 'num_train_epochs': 4879, 'max_train_steps': 200000, 'checkpointing_period': 1000, 'checkpoints_total_limit': 40, 'resume_from_checkpoint': None, 'pretrained_model_name_or_path': '/datahdd_8T/vla_pizza/RDT_module_params/rdt-170m/', 'gradient_accumulation_steps': 1, 'gradient_checkpointing': False, 'learning_rate': 0.0001, 'cond_mask_prob': 0.1, 'cam_ext_mask_prob': -1.0, 'state_noise_snr': 40.0, 'image_aug': True, 'precomp_lang_embed': True, 'scale_lr': False, 'lr_scheduler': 'constant', 'lr_warmup_steps': 500, 'lr_num_cycles': 1, 'lr_power': 1.0, 'use_8bit_adam': False, 'dataloader_num_workers': 8, 'alpha': 0.9, 'adam_beta1': 0.9, 'adam_beta2': 0.999, 'adam_weight_decay': 0.01, 'adam_epsilon': 1e-08, 'max_grad_norm': 1.0, 'push_to_hub': False, 'hub_token': None, 'hub_model_id': None, 'logging_dir': 'logs', 'allow_tf32': False, 'report_to': 'wandb', 'sample_period': 500, 'mixed_precision': 'bf16', 'local_rank': 0, 'set_grads_to_none': False, 'dataset_type': 'finetune'}
