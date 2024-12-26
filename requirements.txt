@@ -7,7 +7,7 @@ h5py==3.11.0
 huggingface_hub==0.24.2
 imageio==2.36.1
 imgaug==0.4.0
-ipython==8.12.3
+ipython
 numpy==1.26.4
 opencv_python_headless==4.10.0.84
 Pillow==11.0.0
@@ -19,5 +19,5 @@ tensorflow==2.15.0
 tensorflow_datasets==4.9.3
 tensorflow_graphics==2021.12.3
 timm==0.9.10
-tqdm==4.66.4
+tqdm
 transformers
