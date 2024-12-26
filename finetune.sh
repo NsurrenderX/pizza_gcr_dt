@@ -6,10 +6,12 @@ export NCCL_NVLS_ENABLE=0
 
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/t5-v1_1-xxl"
+export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
+export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M/"
+
 # export TEXT_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/t5-v1_1-xxl/"
 # export VISION_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/"
-
-export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M/"
+# export PRETRAIN_MODEL_PATH="/datahdd_8T/vla_pizza/RDT_module_params/rdt-170m/"
 # export OUTPUT_DIR="/datahdd_8T/vla_pizza/rdt_checkpoint/170M/"
 export CFLAGS="-I/usr/include"
 export LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
@@ -31,7 +33,7 @@ fi
 
 deepspeed --hostfile=hostfile.txt main.py \
     --deepspeed="./configs/zero2.json" \
-    --pretrained_model_name_or_path="/datahdd_8T/vla_pizza/RDT_module_params/rdt-170m/" \
+    --pretrained_model_name_or_path=$PRETRAIN_MODEL_PATH \
     --pretrained_text_encoder_name_or_path=$TEXT_ENCODER_NAME \
     --pretrained_vision_encoder_name_or_path=$VISION_ENCODER_NAME \
     --output_dir=$OUTPUT_DIR \
