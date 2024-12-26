@@ -1,6 +1,6 @@
-absl_py==2.1.0
-accelerate==0.33.0
-cv_bridge==1.16.2
+absl_py
+accelerate
+cv_bridge
 deepspeed
 diffusers==0.31.0
 h5py==3.11.0
