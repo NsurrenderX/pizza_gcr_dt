@@ -138,8 +138,12 @@ class HDF5VLADataset:
         # Each HDF5 file contains one episode
         HDF5_DIR = "/datahdd_8T/sep_pizza_builder/pizza_dataset/"
         HDF5_META = "/home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/data/pizza_robot/meta_view0.json"
-        self.DATASET_NAME = "pizza_robot"
         self.emb_path = '/datahdd_8T/sep_pizza_builder/pizza_embedded/'
+        HDF5_DIR = "/mnt/robotdata/datasets/pizza_robot/"
+        HDF5_META = "/mnt/robotdata/datasets/pizza_robot/meta_view0.json"
+        self.emb_path = '/mnt/robotdata/datasets/pizza_t5_embedded/'
+        self.DATASET_NAME = "pizza_robot"
+        
         
         self.file_paths = []
         # for root, _, files in os.walk(HDF5_DIR):
