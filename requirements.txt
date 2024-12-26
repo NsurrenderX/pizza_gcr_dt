@@ -9,7 +9,7 @@ imageio==2.36.1
 imgaug==0.4.0
 ipython==8.12.3
 numpy==2.2.1
-opencv_python==4.10.0.84
+opencv_python_headless==4.10.0.84
 Pillow==11.0.0
 PyYAML==6.0.1
 PyYAML==6.0.2
