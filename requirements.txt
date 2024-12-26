@@ -13,7 +13,7 @@ opencv_python_headless==4.10.0.84
 Pillow==11.0.0
 PyYAML==6.0.2
 Requests==2.32.3
-rospy==1.17.0
+rospy
 safetensors==0.4.5
 scipy==1.14.1
 sensor_msgs==1.13.1
