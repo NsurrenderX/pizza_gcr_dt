@@ -4,8 +4,8 @@ export NCCL_SOCKET_IFNAME=eno1 #bond0
 export NCCL_DEBUG=INFO
 export NCCL_NVLS_ENABLE=0
 
-export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/siglip-so400m-patch14-384"
-export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/t5-v1_1-xxl"
+export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
+export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
 export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
 export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M/"
 
@@ -41,8 +41,8 @@ deepspeed --hostfile=hostfile.txt main.py \
     --sample_batch_size=32 \
     --max_train_steps=200000 \
     --checkpointing_period=1000 \
-    --sample_period=10 \
-    --checkpoints_total_limit=40 \
+    --sample_period=500 \
+    --checkpoints_total_limit=100 \
     --lr_scheduler="constant" \
     --learning_rate=1e-4 \
     --mixed_precision="bf16" \
