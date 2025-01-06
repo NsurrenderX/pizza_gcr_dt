@@ -316,11 +316,13 @@ class HDF5VLADataset:
         state = np.zeros((1, 8)).astype(np.float32)
         state[0] = target_qpos[0]
 
+        zero_action = np.zeros_like(actions[0])
+
         def padding_state(value, actual, expected):
 
             if actual < expected:
                 for i in range(1, expected - actual + 1):
-                    value[-i] = value[actual - 1]
+                    value[-i] = zero_action
             return value
         
         actions = padding_state(actions, ACTUAL_LENGTH, CHUNK_SIZE)
