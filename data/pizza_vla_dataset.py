@@ -316,7 +316,9 @@ class HDF5VLADataset:
         state = np.zeros((1, 8)).astype(np.float32)
         state[0] = target_qpos[0]
 
-        zero_action = np.zeros_like(actions[0])
+        zero_action = np.zeros(8).astype(np.float32)
+        for i in range(8):
+            zero_action[i] = 100
 
         def padding_state(value, actual, expected):
 
