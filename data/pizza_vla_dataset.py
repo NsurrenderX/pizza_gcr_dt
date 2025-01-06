@@ -318,7 +318,7 @@ class HDF5VLADataset:
 
         zero_action = np.zeros(8).astype(np.float32)
         for i in range(8):
-            zero_action[i] = 100
+            zero_action[i] = 100.0
 
         def padding_state(value, actual, expected):
 
