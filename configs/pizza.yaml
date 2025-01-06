@@ -1,0 +1,8 @@
+exec:
+  max_step: 100
+  inference_per_step: 12
+url: "http://127.0.0.1:7777/predict"
+task_id: 8
+franka:
+  config: "franka.yml"
+

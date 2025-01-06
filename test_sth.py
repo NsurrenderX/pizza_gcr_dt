@@ -18,8 +18,10 @@ def padding_state(value, actual, expected):
 import numpy as np
 
 if __name__ == '__main__':
-    value = np.zeros([6, 3])
-    rand = np.random.rand(3, 3)
-    value[:rand.shape[0], :rand.shape[1]] = rand
-    print(value)
-    print(padding_state(value, 3, 6))
+    npy_path = "/datahdd_8T/sep_pizza_builder/pizza_dataset/6/20230825161210/franka_data.npy"
+    imag_path = "/datahdd_8T/sep_pizza_builder/pizza_dataset/6/20230825161210/images/right_rgb/001.jpg"
+
+    robot_state = np.load(npy_path, allow_pickle=True)
+    print(robot_state[0]['joint_position'])
+    print(isinstance(robot_state[0]['joint_position'], np.ndarray))
+    print(robot_state[0]['joint_position'].shape)
