@@ -8,7 +8,7 @@ export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m
 
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
-export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M_action_chunk_2pi_padding/"
+export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M_action_chunk_2pi_padding_2e-5/"
 # export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M_action_chunk_100_padding/"
 # export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-1b/"
 
@@ -42,15 +42,15 @@ deepspeed --hostfile=hostfile.txt main.py \
     --pretrained_text_encoder_name_or_path=$TEXT_ENCODER_NAME \
     --pretrained_vision_encoder_name_or_path=$VISION_ENCODER_NAME \
     --output_dir=$OUTPUT_DIR \
-    --train_batch_size=32 \
-    --sample_batch_size=32 \
+    --train_batch_size=8 \
+    --sample_batch_size=8 \
     --max_train_steps=300000 \
     --checkpointing_period=5000 \
     --sample_period=500 \
     --checkpoints_total_limit=100 \
     --lr_scheduler="constant" \
-    --learning_rate=1e-4 \
-    --mixed_precision="bf16" \
+    --learning_rate=2e-5 \
+    --mixed_precision="no" \
     --dataloader_num_workers=8 \
     --image_aug \
     --dataset_type="finetune" \
