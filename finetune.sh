@@ -8,9 +8,9 @@ export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m
 
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
-# export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M_action_chunk_zero_padding/"
-export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M_action_chunk_100_padding/"
-export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-1b/"
+export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M_action_chunk_2pi_padding/"
+# export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M_action_chunk_100_padding/"
+# export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-1b/"
 
 # export TEXT_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/t5-v1_1-xxl/"
 # export VISION_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/"
@@ -42,8 +42,8 @@ deepspeed --hostfile=hostfile.txt main.py \
     --pretrained_text_encoder_name_or_path=$TEXT_ENCODER_NAME \
     --pretrained_vision_encoder_name_or_path=$VISION_ENCODER_NAME \
     --output_dir=$OUTPUT_DIR \
-    --train_batch_size=4 \
-    --sample_batch_size=4 \
+    --train_batch_size=32 \
+    --sample_batch_size=32 \
     --max_train_steps=300000 \
     --checkpointing_period=5000 \
     --sample_period=500 \
