@@ -323,8 +323,12 @@ class HDF5VLADataset:
         def padding_state(value, actual, expected):
 
             if actual < expected:
-                for i in range(1, expected - actual + 1):
-                    value[-i] = zero_action
+                if expected % actual == 0:
+                    # Repeative padding using the actual action chunk
+                    for i in range(1, expected // actual):
+                        value[i*actual:(i+1)*actual] = value[:actual]
+                # for i in range(1, expected - actual + 1):
+                #     value[-i] = zero_action
             return value
         
         actions = padding_state(actions, ACTUAL_LENGTH, CHUNK_SIZE)
