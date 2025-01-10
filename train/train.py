@@ -147,7 +147,7 @@ def train(args, logger):
         and not os.path.isfile(args.pretrained_model_name_or_path)
     ):
         logger.info("Constructing model from pretrained checkpoint.")
-        rdt = RDTRunner.from_pretrained(args.pretrained_model_name_or_path)
+        rdt = RDTRunner.from_pretrained(args.pretrained_model_name_or_path).to(dtype=weight_dtype)
     else:
         logger.info("Constructing model from provided config.")
         # Calculate the image condition length
@@ -408,7 +408,7 @@ def train(args, logger):
                 states = states[:, -1:, :]
                 actions = batch["actions"].to(dtype=weight_dtype)
                 state_elem_mask = batch["state_elem_mask"].to(dtype=weight_dtype)
-                ctrl_freqs = batch["ctrl_freqs"]
+                ctrl_freqs = batch["ctrl_freqs"].to(dtype=weight_dtype)
                     
                 with torch.no_grad():
                     batch_size, _, C, H, W = images.shape
