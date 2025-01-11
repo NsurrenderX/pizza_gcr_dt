@@ -122,6 +122,16 @@ class RDT(nn.Module):
         
         # Move all the params to given data type:
         self.to(self.dtype)
+    
+    def reconfig_dtype(self):
+        self.to(self.dtype)
+        self.t_embedder.dtype = self.dtype
+        self.freq_embedder.dtype = self.dtype
+        for param in self.t_embedder.parameters():
+            param.data = param.data.to(self.dtype)
+        for param in self.freq_embedder.parameters():
+            param.data = param.data.to(self.dtype)
+        
 
     def forward(self, x, freq, t, lang_c, img_c, lang_mask=None, img_mask=None):
         """
@@ -138,6 +148,14 @@ class RDT(nn.Module):
         lang_mask: (B, L_lang) or None, language condition mask (True for valid).
         img_mask: (B, L_img) or None, image condition mask (True for valid).
         """
+        # Check Dtype of t & t_embedder
+        # print(self.dtype, self.t_embedder.dtype, self.freq_embedder.dtype, self.x_pos_embed.dtype, self.lang_cond_pos_embed.dtype, \
+        #       self.img_cond_pos_embed.dtype, t.dtype)
+        # for param in self.final_layer.parameters():
+        #     print(param.dtype)
+        # for block in self.blocks:
+        #     for param in block.parameters():
+        #         print(param.dtype)
         t = self.t_embedder(t).unsqueeze(1)             # (B, 1, D) or (1, 1, D)
         # print(t.shape)
         freq = self.freq_embedder(freq).unsqueeze(1)    # (B, 1, D)

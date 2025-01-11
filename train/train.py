@@ -147,7 +147,10 @@ def train(args, logger):
         and not os.path.isfile(args.pretrained_model_name_or_path)
     ):
         logger.info("Constructing model from pretrained checkpoint.")
-        rdt = RDTRunner.from_pretrained(args.pretrained_model_name_or_path).to(dtype=weight_dtype)
+        rdt = RDTRunner.from_pretrained(args.pretrained_model_name_or_path)
+        rdt.model.dtype = weight_dtype
+        rdt = rdt.to(dtype=weight_dtype)
+        rdt.model.reconfig_dtype()
     else:
         logger.info("Constructing model from provided config.")
         # Calculate the image condition length
@@ -307,6 +310,9 @@ def train(args, logger):
     rdt, optimizer, train_dataloader, sample_dataloader, lr_scheduler = accelerator.prepare(
         rdt, optimizer, train_dataloader, sample_dataloader, lr_scheduler                   
     )
+    # print(rdt)
+    for param in rdt.parameters():
+        print(param, param.dtype)
 
     ema_rdt.to(accelerator.device, dtype=weight_dtype)                                                                             
 
@@ -386,6 +392,9 @@ def train(args, logger):
             first_epoch = global_step // num_update_steps_per_epoch
             resume_step = resume_global_step % (num_update_steps_per_epoch * args.gradient_accumulation_steps)
 
+    for param in rdt.parameters():
+        if param.dtype != weight_dtype:
+            param.data = param.data.to(weight_dtype)
     # Only show the progress bar once on each machine.
     progress_bar = tqdm(range(global_step, args.max_train_steps), disable=not accelerator.is_local_main_process)
     progress_bar.set_description("Steps")

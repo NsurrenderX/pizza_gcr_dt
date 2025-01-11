@@ -37,7 +37,7 @@ fi
 #     ...
 
 deepspeed --hostfile=hostfile.txt main.py \
-    --deepspeed="./configs/zero2.json" \
+    --deepspeed="./configs/zero2fp32.json" \
     --pretrained_model_name_or_path=$PRETRAIN_MODEL_PATH \
     --pretrained_text_encoder_name_or_path=$TEXT_ENCODER_NAME \
     --pretrained_vision_encoder_name_or_path=$VISION_ENCODER_NAME \
@@ -50,7 +50,7 @@ deepspeed --hostfile=hostfile.txt main.py \
     --checkpoints_total_limit=100 \
     --lr_scheduler="constant" \
     --learning_rate=1e-4 \
-    --mixed_precision="no" \
+    --mixed_precision="fp16" \
     --dataloader_num_workers=8 \
     --image_aug \
     --dataset_type="finetune" \
