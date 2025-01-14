@@ -362,8 +362,8 @@ class HDF5VLADataset:
             
             if actual < expected:
                 for i in range(1, expected - actual + 1 ):
-                    # value[-i] = value[actual - 1]
-                    value[-i] = zero_action
+                    value[-i] = value[actual - 1]
+                    # value[-i] = zero_action
             return value
         
         target_qpos = padding_state(target_qpos, ACTUAL_CHUNK_SIZE, CHUNK_SIZE)
@@ -388,6 +388,7 @@ class HDF5VLADataset:
         state = fill_in_state(state)
         state_std = fill_in_state(state_std)
         state_mean = fill_in_state(state_mean)
+        state_norm = fill_in_state(state_norm)
         
         actions = fill_in_state(target_qpos)
         
