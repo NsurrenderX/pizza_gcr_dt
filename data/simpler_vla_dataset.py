@@ -362,7 +362,7 @@ class HDF5VLADataset:
             
             if actual < expected:
                 for i in range(1, expected - actual + 1 ):
-                    value[-i] = value[actual - 1]
+                    # value[-i] = value[actual - 1]
                     value[-i] = zero_action
             return value
         
