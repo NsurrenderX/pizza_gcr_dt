@@ -151,6 +151,7 @@ def train(args, logger):
         rdt.model.dtype = weight_dtype
         rdt = rdt.to(dtype=weight_dtype)
         rdt.model.reconfig_dtype()
+        rdt.reconfig_horizon(config["common"]["action_chunk_size"])
     else:
         logger.info("Constructing model from provided config.")
         # Calculate the image condition length

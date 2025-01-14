@@ -139,9 +139,9 @@ class HDF5VLADataset:
         HDF5_DIR = "/datahdd_8T/sep_pizza_builder/pizza_dataset/"
         HDF5_META = "/home/v-wenhuitan/RDT/RoboticsDiffusionTransformer/data/pizza_robot/meta_view0.json"
         self.emb_path = '/datahdd_8T/sep_pizza_builder/pizza_embedded/'
-        HDF5_DIR = "/mnt/robotdata/datasets/pizza_robot/"
-        HDF5_META = "/mnt/robotdata/datasets/pizza_robot/meta_view0.json"
-        self.emb_path = '/mnt/robotdata/datasets/pizza_t5_embedded/'
+        # HDF5_DIR = "/mnt/robotdata/datasets/pizza_robot/"
+        # HDF5_META = "/mnt/robotdata/datasets/pizza_robot/meta_view0.json"
+        # self.emb_path = '/mnt/robotdata/datasets/pizza_t5_embedded/'
         self.DATASET_NAME = "pizza_robot"
         
         
@@ -302,7 +302,7 @@ class HDF5VLADataset:
         qpos_ids = chosen_task_ids[episode_id]
         # Actual Chunk Size: 16
         CHUNK_SIZE = self.CHUNK_SIZE
-        ACTUAL_CHUNK_SIZE = 16
+        ACTUAL_CHUNK_SIZE = 12
         target_ids = qpos_ids[step_id - 1 : step_id + ACTUAL_CHUNK_SIZE]
         target_qpos = np.zeros((self.CHUNK_SIZE + 1, 8)).astype(np.float32)
         ACTUAL_LENGTH = 0

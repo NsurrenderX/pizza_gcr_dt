@@ -587,7 +587,7 @@ def predict():
 if __name__ == "__main__":
     device = 'cuda:0'
     pretrained_vision_encoder_name_or_path = "/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/"
-    pretrained_model_name_or_path = "/datahdd_8T/vla_pizza/rdt_checkpoint/170M_2pipadding_1e4/checkpoint-130000/"
+    pretrained_model_name_or_path = "/datahdd_8T/vla_pizza/rdt_checkpoint/170M_test_16chunk/checkpoint-100/"
 
     print("Loading Model from: ", pretrained_model_name_or_path)
     print("Loading vision encoder from: ", pretrained_vision_encoder_name_or_path)
