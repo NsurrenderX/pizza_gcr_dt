@@ -9,7 +9,7 @@ export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
 # export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/170M_action_chunk_repetive_padding/"
-export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M_test_16Xactionchunk/"
+export OUTPUT_DIR="/mnt/wangxiaofa/rdt_checkpoint/1000M_test_ac16_bs4x32/"
 export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-1b/"
 
 # export TEXT_ENCODER_NAME="/datahdd_8T/vla_pizza/RDT_module_params/t5-v1_1-xxl/"
@@ -51,7 +51,7 @@ deepspeed --hostfile=hostfile.txt main.py \
     --lr_scheduler="constant" \
     --learning_rate=1e-4 \
     --mixed_precision="bf16" \
-    --dataloader_num_workers=8 \
+    --dataloader_num_workers=10 \
     --image_aug \
     --dataset_type="finetune" \
     --state_noise_snr=40 \

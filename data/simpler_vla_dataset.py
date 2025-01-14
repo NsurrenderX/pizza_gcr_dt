@@ -190,6 +190,7 @@ class HDF5VLADataset:
         # [Modify] The path to the HDF5 dataset directory
         # Each HDF5 file contains one episode
         HDF5_DIR = "/mnt/wangxiaofa/robot_dataset/simpler_data/"
+        # HDF5_DIR = "/data_16T/simpler/simpler_data/"
         self.DATASET_NAME = "simpler"
         self.emb_path = ""
         
@@ -391,15 +392,19 @@ class HDF5VLADataset:
         def parse_img(id:int):
             imgs = []
 
-            for i in range(max(id - self.IMG_HISORY_SIZE + 1, 0), id + 1):
-                img = frames[i]
-                # img = img[:, 65:575, :]
+            if id > 0:
+                for i in range(max(id - self.IMG_HISORY_SIZE + 1, 0), id + 1):
+                    img = frames[i]
+                    # img = img[:, 65:575, :]
+                    imgs.append(img)
+            else:
+                img = frames[id]
                 imgs.append(img)
             imgs = np.stack(imgs)
             
             if imgs.shape[0] < self.IMG_HISORY_SIZE:
                 # Pad the image squence using the first image
-                img = np.concatenate([
+                imgs = np.concatenate([
                     np.tile(imgs[:1], (self.IMG_HISORY_SIZE-imgs.shape[0], 1, 1, 1)),
                     imgs
                     ], axis=0)
@@ -407,7 +412,7 @@ class HDF5VLADataset:
             return imgs
         
         cam_right_wrist = parse_img(step_id)
-        valid_len = min(step_id - first_idx + 2, self.IMG_HISORY_SIZE)
+        valid_len = min(step_id - first_idx + 1, self.IMG_HISORY_SIZE)
         cam_right_wrist_mask = np.array(
                 [False] * (self.IMG_HISORY_SIZE - valid_len) + [True] * valid_len
             )
@@ -522,6 +527,12 @@ class HDF5VLADataset:
 
 if __name__ == "__main__":
     ds = HDF5VLADataset()
+    abnormal_shape =0
     for i in range(len(ds)):
         print(f"Processing episode {i}/{len(ds)}...")
-        ds.get_item(i)
+        sample = ds.get_item(i)
+        print(sample['cam_right_wrist'].shape[0], sample['cam_right_wrist_mask'].shape[0], abnormal_shape)
+        if (sample['cam_right_wrist'].shape[0] != 2) or (sample['cam_right_wrist_mask'].shape[0] != 2):
+            abnormal_shape += 1
+    print(abnormal_shape)
+        
