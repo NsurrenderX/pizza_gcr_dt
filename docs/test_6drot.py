@@ -96,6 +96,7 @@ if __name__ == "__main__":
     ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
     curortho6d = compute_ortho6d_from_rotation_matrix(currentrotmat)
     print(f"6D Rotation: {ortho6d}")
+    print(ortho6d.shape)
     print(f"Rotation Matrix: {rotmat}")
     print(f"Current Rotation Coords: {currentrotmat}")
     

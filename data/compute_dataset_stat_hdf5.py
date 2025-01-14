@@ -9,7 +9,8 @@ import argparse
 import numpy as np
 from tqdm import tqdm
 
-from data.pizza_vla_dataset import HDF5VLADataset
+from data.simpler_vla_dataset import HDF5VLADataset
+# from data.pizza_vla_dataset import HDF5VLADataset
 # from data.hdf5_vla_dataset import HDF5VLADataset
 
 

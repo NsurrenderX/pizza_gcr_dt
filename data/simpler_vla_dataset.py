@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 
 from scipy.spatial.transform import Rotation as R
+from tqdm import tqdm
 
 def convert_euler_to_rotation_matrix(euler):
     """
@@ -188,13 +189,13 @@ class HDF5VLADataset:
     def __init__(self) -> None:
         # [Modify] The path to the HDF5 dataset directory
         # Each HDF5 file contains one episode
-        HDF5_DIR = "data/datasets/agilex/rdt_data/"
+        HDF5_DIR = "/mnt/wangxiaofa/robot_dataset/simpler_data/"
         self.DATASET_NAME = "simpler"
         self.emb_path = ""
         
         self.file_paths = []
         hdf5_list = os.listdir(HDF5_DIR)
-        for task_dir in hdf5_list:
+        for task_dir in tqdm(hdf5_list, desc="Loading datalist from dataset"):
             task_dir_path = os.path.join(HDF5_DIR, task_dir)
             task_list = os.listdir(task_dir_path)
             for file in task_list:
@@ -293,8 +294,6 @@ class HDF5VLADataset:
         frames = np.load(frame_path)
         actions = np.load(action_path)
         
-        task_id = file_path.split('/')[-2]
-        
         num_steps = len(actions)
         # [Optional] We drop too-short episode
         if num_steps < 30:
@@ -307,7 +306,7 @@ class HDF5VLADataset:
         step_id = np.random.randint(0, num_steps-1)
         
         # Load the instruction
-        instruction = os.path.join(self.emb_path, f"lang_embed_{task_id}.pt")
+        instruction = os.path.join(file_path, "lang_embed.pt")
         
         #meta data for this trajectory
         meta = {
@@ -319,26 +318,26 @@ class HDF5VLADataset:
         
         def get_state_from_action(id):
             current_coordinate = np.zeros((1, 10)).astype(np.float32)
-            init_rotmat = convert_euler_to_rotation_matrix(init_coordinate[3:6])
+            init_rotmat = convert_euler_to_rotation_matrix(np.expand_dims(init_coordinate[3:6], axis=0))[0]
             current_rotmat = init_rotmat
             for i in range(id):
                 for k in range(3):
-                    current_coordinate[k] += actions[i][k]
-                rotmat = convert_euler_to_rotation_matrix(actions[i][3:6])
+                    current_coordinate[0][k] += actions[i][k]
+                rotmat = convert_euler_to_rotation_matrix(np.expand_dims(actions[i][3:6], axis=0))[0]
                 current_rotmat = rotmat @ current_rotmat
             
-            current_ortho6d = compute_ortho6d_from_rotation_matrix(current_rotmat)
-            current_coordinate[3:9] = current_ortho6d
-            current_coordinate[9] = actions[id][6]
+            current_ortho6d = compute_ortho6d_from_rotation_matrix(np.expand_dims(current_rotmat, axis=0))[0]
+            current_coordinate[0][3:9] = current_ortho6d
+            current_coordinate[0][9] = 0 if actions[id][6] < 0 else 1
             return current_coordinate
         
         qpos = np.zeros((actions.shape[0], 10)).astype(np.float32)
         for i in range(actions.shape[0]):
             qpos[i][:3] = actions[i][:3]
-            rotmat = convert_euler_to_rotation_matrix(actions[i][3:6])
-            ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
+            rotmat = convert_euler_to_rotation_matrix(np.expand_dims(actions[i][3:6], axis=0))[0]
+            ortho6d = compute_ortho6d_from_rotation_matrix(np.expand_dims(rotmat, axis=0))[0]
             qpos[i][3:9] = ortho6d
-            qpos[i][9] = actions[i][6]
+            qpos[i][9] = 0 if actions[i][6] < 0 else 1
         state_norm = np.sqrt(np.mean(qpos**2, axis=0))
         state_std = np.std(qpos, axis=0)
         state_mean = np.mean(qpos, axis=0)
@@ -469,17 +468,18 @@ class HDF5VLADataset:
         
         def get_state_from_action(id):
             current_coordinate = np.zeros((1, 10)).astype(np.float32)
-            init_rotmat = convert_euler_to_rotation_matrix(init_coordinate[3:6])
+            init_rotmat = convert_euler_to_rotation_matrix(np.expand_dims(init_coordinate[3:6], axis=0))[0]
             current_rotmat = init_rotmat
             for i in range(id):
                 for k in range(3):
-                    current_coordinate[k] += actions[i][k]
-                rotmat = convert_euler_to_rotation_matrix(actions[i][3:6])
+                    current_coordinate[0][k] += actions[i][k]
+                rotmat = convert_euler_to_rotation_matrix(np.expand_dims(actions[i][3:6], axis=0))[0]
                 current_rotmat = rotmat @ current_rotmat
             
-            current_ortho6d = compute_ortho6d_from_rotation_matrix(current_rotmat)
-            current_coordinate[3:9] = current_ortho6d
-            current_coordinate[9] = actions[id][6]
+            current_ortho6d = compute_ortho6d_from_rotation_matrix(np.expand_dims(current_rotmat, axis=0))[0]
+            # print(current_ortho6d.shape)
+            current_coordinate[0][3:9] = current_ortho6d
+            current_coordinate[0][9] = 0 if actions[id][6] < 0 else 1
             return current_coordinate
         qpos = np.zeros((actions.shape[0] + 1, 10)).astype(np.float32)
         
@@ -490,10 +490,29 @@ class HDF5VLADataset:
         for i in range(actions.shape[0]):
             target_qos[i][:3] = actions[i][:3]
             euler = actions[i][3:6]
-            rotmat = convert_euler_to_rotation_matrix(euler)
-            ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
+            rotmat = convert_euler_to_rotation_matrix(np.expand_dims(euler, axis=0))[0]
+            ortho6d = compute_ortho6d_from_rotation_matrix(np.expand_dims(rotmat, axis=0))[0]
             target_qos[i][3:9] = ortho6d
-            target_qos[i][9] = actions[i][6]
+            target_qos[i][9] = 0 if actions[i][6] < 0 else 1
+            
+        # Fill the state/action into the unified vector
+        def fill_in_state(values):
+            # Target indices corresponding to your state space
+            # In our data: 3 translation, 6 rotation, 1 gripper
+            UNI_STATE_INDICES = [ STATE_VEC_IDX_MAPPING['eef_pos_x']
+                            ] + [ STATE_VEC_IDX_MAPPING['eef_pos_y']
+                            ] + [ STATE_VEC_IDX_MAPPING['eef_pos_z']
+                    ] + [
+                        STATE_VEC_IDX_MAPPING[f"eef_angle_{i}"] for i in range(6)
+                    ] + [
+                        STATE_VEC_IDX_MAPPING["right_gripper_open"]
+                    ]
+            uni_vec = np.zeros(values.shape[:-1] + (self.STATE_DIM,))
+            uni_vec[..., UNI_STATE_INDICES] = values
+            return uni_vec
+        
+        qpos = fill_in_state(qpos)
+        target_qos = fill_in_state(target_qos)
         
         return True, {
             "state": qpos,
