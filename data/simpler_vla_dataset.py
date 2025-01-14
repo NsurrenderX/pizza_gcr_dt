@@ -288,8 +288,8 @@ class HDF5VLADataset:
                 } or None if the episode is invalid.
         """
         # Load both frames.npy & action.npy
-        frame_path = os.path.join(dir_path, 'frames.npy')
-        action_path = os.path.join(dir_path, 'action.npy')
+        frame_path = os.path.join(file_path, 'frames.npy')
+        action_path = os.path.join(file_path, 'action.npy')
         frames = np.load(frame_path)
         actions = np.load(action_path)
         
@@ -332,8 +332,16 @@ class HDF5VLADataset:
             current_coordinate[9] = actions[id][6]
             return current_coordinate
         
-        qpos = actions
-        state_norm = np.sqrt(np.mean(qpos ** 2, axis=0))
+        qpos = np.zeros((actions.shape[0], 10)).astype(np.float32)
+        for i in range(actions.shape[0]):
+            qpos[i][:3] = actions[i][:3]
+            rotmat = convert_euler_to_rotation_matrix(actions[i][3:6])
+            ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
+            qpos[i][3:9] = ortho6d
+            qpos[i][9] = actions[i][6]
+        state_norm = np.sqrt(np.mean(qpos**2, axis=0))
+        state_std = np.std(qpos, axis=0)
+        state_mean = np.mean(qpos, axis=0)
         
         CHUNK_SIZE = self.CHUNK_SIZE
         ACTUAL_CHUNK_SIZE = min(CHUNK_SIZE, num_steps - step_id)
@@ -342,11 +350,7 @@ class HDF5VLADataset:
         state = np.zeros((1, 10)).astype(np.float32)
         
         for i in range(ACTUAL_CHUNK_SIZE):
-            target_qpos[i][:3] = actions[step_id + i][:3]
-            rotmat = convert_euler_to_rotation_matrix(actions[step_id + i][3:6])
-            ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
-            target_qpos[i][3:9] = ortho6d
-            target_qpos[i][9] = actions[step_id + i][6]
+            target_qpos[i] = qpos[step_id + i]
         
         state[0] = get_state_from_action(step_id)
         
@@ -375,141 +379,66 @@ class HDF5VLADataset:
             uni_vec[..., UNI_STATE_INDICES] = values
             return uni_vec
             
+        state_indicator = fill_in_state(np.ones_like(state[0]))
+        state = fill_in_state(state)
+        state_std = fill_in_state(state_std)
+        state_mean = fill_in_state(state_mean)
         
-        with h5py.File(file_path, 'r') as f:
-            qpos = f['observations']['qpos'][:]
-            num_steps = qpos.shape[0]
-            # [Optional] We drop too-short episode
-            if num_steps < 128:
-                return False, None
+        actions = fill_in_state(target_qpos)
+        
+        def unavailable_img():
+            return np.zeros((self.IMG_HISORY_SIZE, 0, 0, 0))
+        
+        def parse_img(id:int):
+            imgs = []
+
+            for i in range(max(id - self.IMG_HISORY_SIZE + 1, 0), id + 1):
+                img = frames[i]
+                # img = img[:, 65:575, :]
+                imgs.append(img)
+            imgs = np.stack(imgs)
             
-            # [Optional] We skip the first few still steps
-            EPS = 1e-2
-            # Get the idx of the first qpos whose delta exceeds the threshold
-            qpos_delta = np.abs(qpos - qpos[0:1])
-            indices = np.where(np.any(qpos_delta > EPS, axis=1))[0]
-            if len(indices) > 0:
-                first_idx = indices[0]
-            else:
-                raise ValueError("Found no qpos that exceeds the threshold.")
-            
-            # We randomly sample a timestep
-            step_id = np.random.randint(first_idx-1, num_steps)
-            
-            # Load the instruction
-            dir_path = os.path.dirname(file_path)
-            with open(os.path.join(dir_path, 'expanded_instruction_gpt-4-turbo.json'), 'r') as f_instr:
-                instruction_dict = json.load(f_instr)
-            # We have 1/3 prob to use original instruction,
-            # 1/3 to use simplified instruction,
-            # and 1/3 to use expanded instruction.
-            instruction_type = np.random.choice([
-                'instruction', 'simplified_instruction', 'expanded_instruction'])
-            instruction = instruction_dict[instruction_type]
-            if isinstance(instruction, list):
-                instruction = np.random.choice(instruction)
-            # You can also use precomputed language embeddings (recommended)
-            # instruction = "path/to/lang_embed.pt"
-            
-            # Assemble the meta
-            meta = {
-                "dataset_name": self.DATASET_NAME,
-                "#steps": num_steps,
-                "step_id": step_id,
-                "instruction": instruction
-            }
-            
-            # Rescale gripper to [0, 1]
-            qpos = qpos / np.array(
-               [[1, 1, 1, 1, 1, 1, 4.7908, 1, 1, 1, 1, 1, 1, 4.7888]] 
-            )
-            target_qpos = f['action'][step_id:step_id+self.CHUNK_SIZE] / np.array(
-               [[1, 1, 1, 1, 1, 1, 11.8997, 1, 1, 1, 1, 1, 1, 13.9231]] 
-            )
-            
-            # Parse the state and action
-            state = qpos[step_id:step_id+1]
-            state_std = np.std(qpos, axis=0)
-            state_mean = np.mean(qpos, axis=0)
-            state_norm = np.sqrt(np.mean(qpos**2, axis=0))
-            actions = target_qpos
-            if actions.shape[0] < self.CHUNK_SIZE:
-                # Pad the actions using the last action
-                actions = np.concatenate([
-                    actions,
-                    np.tile(actions[-1:], (self.CHUNK_SIZE-actions.shape[0], 1))
-                ], axis=0)
-            
-            # Fill the state/action into the unified vector
-            def fill_in_state(values):
-                # Target indices corresponding to your state space
-                # In this example: 6 joints + 1 gripper for each arm
-                UNI_STATE_INDICES = [
-                    STATE_VEC_IDX_MAPPING[f"left_arm_joint_{i}_pos"] for i in range(6)
-                ] + [
-                    STATE_VEC_IDX_MAPPING["left_gripper_open"]
-                ] + [
-                    STATE_VEC_IDX_MAPPING[f"right_arm_joint_{i}_pos"] for i in range(6)
-                ] + [
-                    STATE_VEC_IDX_MAPPING["right_gripper_open"]
-                ]
-                uni_vec = np.zeros(values.shape[:-1] + (self.STATE_DIM,))
-                uni_vec[..., UNI_STATE_INDICES] = values
-                return uni_vec
-            state = fill_in_state(state)
-            state_indicator = fill_in_state(np.ones_like(state_std))
-            state_std = fill_in_state(state_std)
-            state_mean = fill_in_state(state_mean)
-            state_norm = fill_in_state(state_norm)
-            # If action's format is different from state's,
-            # you may implement fill_in_action()
-            actions = fill_in_state(actions)
-            
-            # Parse the images
-            def parse_img(key):
-                imgs = []
-                for i in range(max(step_id-self.IMG_HISORY_SIZE+1, 0), step_id+1):
-                    img = f['observations']['images'][key][i]
-                    imgs.append(cv2.imdecode(np.frombuffer(img, np.uint8), cv2.IMREAD_COLOR))
-                imgs = np.stack(imgs)
-                if imgs.shape[0] < self.IMG_HISORY_SIZE:
-                    # Pad the images using the first image
-                    imgs = np.concatenate([
-                        np.tile(imgs[:1], (self.IMG_HISORY_SIZE-imgs.shape[0], 1, 1, 1)),
-                        imgs
+            if imgs.shape[0] < self.IMG_HISORY_SIZE:
+                # Pad the image squence using the first image
+                img = np.concatenate([
+                    np.tile(imgs[:1], (self.IMG_HISORY_SIZE-imgs.shape[0], 1, 1, 1)),
+                    imgs
                     ], axis=0)
-                return imgs
-            # `cam_high` is the external camera image
-            cam_high = parse_img('cam_high')
-            # For step_id = first_idx - 1, the valid_len should be one
-            valid_len = min(step_id - (first_idx - 1) + 1, self.IMG_HISORY_SIZE)
-            cam_high_mask = np.array(
+            
+            return imgs
+        
+        cam_right_wrist = parse_img(step_id)
+        valid_len = min(step_id - first_idx + 2, self.IMG_HISORY_SIZE)
+        cam_right_wrist_mask = np.array(
                 [False] * (self.IMG_HISORY_SIZE - valid_len) + [True] * valid_len
             )
-            cam_left_wrist = parse_img('cam_left_wrist')
-            cam_left_wrist_mask = cam_high_mask.copy()
-            cam_right_wrist = parse_img('cam_right_wrist')
-            cam_right_wrist_mask = cam_high_mask.copy()
-            
-            # Return the resulting sample
-            # For unavailable images, return zero-shape arrays, i.e., (IMG_HISORY_SIZE, 0, 0, 0)
-            # E.g., return np.zeros((self.IMG_HISORY_SIZE, 0, 0, 0)) for the key "cam_left_wrist",
-            # if the left-wrist camera is unavailable on your robot
-            return True, {
-                "meta": meta,
-                "state": state,
-                "state_std": state_std,
-                "state_mean": state_mean,
-                "state_norm": state_norm,
-                "actions": actions,
-                "state_indicator": state_indicator,
-                "cam_high": cam_high,
-                "cam_high_mask": cam_high_mask,
-                "cam_left_wrist": cam_left_wrist,
-                "cam_left_wrist_mask": cam_left_wrist_mask,
-                "cam_right_wrist": cam_right_wrist,
-                "cam_right_wrist_mask": cam_right_wrist_mask
-            }
+        
+        cam_left_wrist = unavailable_img()
+        cam_left_wrist_mask = cam_right_wrist_mask.copy()
+
+        cam_high = unavailable_img()
+        cam_high_mask = cam_right_wrist_mask.copy()
+        
+        # Return the resulting sample
+        # For unavailable images, return zero-shape arrays, i.e., (IMG_HISORY_SIZE, 0, 0, 0)
+        # E.g., return np.zeros((self.IMG_HISORY_SIZE, 0, 0, 0)) for the key "cam_left_wrist",
+        # if the left-wrist camera is unavailable on your robot
+        return True, {
+            "meta": meta,
+            "state": state,
+            "state_std": state_std,
+            "state_mean": state_mean,
+            "state_norm": state_norm,
+            "actions": actions,
+            "state_indicator": state_indicator,
+            "cam_high": cam_high,
+            "cam_high_mask": cam_high_mask,
+            "cam_left_wrist": cam_left_wrist,
+            "cam_left_wrist_mask": cam_left_wrist_mask,
+            "cam_right_wrist": cam_right_wrist,
+            "cam_right_wrist_mask": cam_right_wrist_mask
+        }
+        
 
     def parse_hdf5_file_state_only(self, file_path):
         """[Modify] Parse a hdf5 file to generate a state trajectory.
