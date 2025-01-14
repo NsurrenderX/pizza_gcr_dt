@@ -355,6 +355,8 @@ class HDF5VLADataset:
         state[0] = get_state_from_action(step_id)
         
         zero_action = np.zeros(10).astype(np.float32)
+        for i in range(zero_action.shape[0]):
+            zero_action[i] = np.pi*2
         
         def padding_state(value, actual, expected=0):
             
