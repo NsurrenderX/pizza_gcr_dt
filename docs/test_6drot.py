@@ -86,14 +86,23 @@ if __name__ == "__main__":
     # Randomly generate a euler ange
     euler = np.random.rand(3) * 2 * np.pi - np.pi
     euler = euler[None, :]    # Add batch dimension
+    current = np.zeros_like(euler)
     print(f"Input Euler angles: {euler}")
     
     # Convert to 6D Rotation
+    currentmat = convert_euler_to_rotation_matrix(euler)
     rotmat = convert_euler_to_rotation_matrix(euler)
+    currentrotmat = rotmat @ currentmat
     ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
+    curortho6d = compute_ortho6d_from_rotation_matrix(currentrotmat)
     print(f"6D Rotation: {ortho6d}")
+    print(f"Rotation Matrix: {rotmat}")
+    print(f"Current Rotation Coords: {currentrotmat}")
     
     # Convert back to Euler angles
+    currentrotmat = compute_rotation_matrix_from_ortho6d(curortho6d)
+    current_recovered = convert_rotation_matrix_to_euler(currentrotmat)
     rotmat_recovered = compute_rotation_matrix_from_ortho6d(ortho6d)
     euler_recovered = convert_rotation_matrix_to_euler(rotmat_recovered)
     print(f"Recovered Euler angles: {euler_recovered}")
+    print(f"Recovered Euler Coords: {current_recovered}")

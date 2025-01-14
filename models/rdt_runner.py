@@ -82,6 +82,10 @@ class RDTRunner(
             [p.numel() for p in self.img_adaptor.parameters()] + 
             [p.numel() for p in self.state_adaptor.parameters()]))
     
+    def reconfig_horizon(self, new_horizon:int):
+        self.pred_horizon = new_horizon
+        self.model.reconfig_horizon(new_horizon)
+    
     def build_condition_adapter(
         self, projector_type, in_features, out_features):
         projector = None

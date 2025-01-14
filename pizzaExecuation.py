@@ -30,6 +30,11 @@ def exec_robot(fr3, idx, action):
     print("Executing action: ")
     # print("Current Step: ", idx)
     print("Detailed action: ", action)
+    success = 1
+    if config['padding'] - action[0] <= 1e-5 or action[0] > 1.5*np.pi:
+        print("Padding Value detected, aboritng this execution")
+        success = 0
+        return success
     fr3.arm.goto_joints(action[:7], duration=1.5, buffer_time=0.1, ignore_virtual_walls = True)
     current_width = fr3.arm.get_gripper_width()
     tgt_gripper = action[7]
@@ -59,7 +64,7 @@ def exec_robot(fr3, idx, action):
     gripper_queue.append(gripper)
     image_queue.append(get_image()['k4a_0'])
 
-    return joint, gripper
+    return success
 
 def control_loop(fr3, task_id, exec_per_step, max_step):
     global joint_queue, gripper_queue, image_queue, config
@@ -83,8 +88,8 @@ def control_loop(fr3, task_id, exec_per_step, max_step):
         for idx in range(exec_per_step):
             print("Current Step: ", step)
             action = actions[idx]
-            exec_robot(fr3, idx, action)
-            step += 1
+            success = exec_robot(fr3, idx, action)
+            step += success
 
 
 
@@ -118,7 +123,7 @@ if __name__ == "__main__":
         img_IMAGE_queue.append(Image.fromarray(decode_b64_image(img)))
 
     # Save Data
-    imageio.mimsave('./latest.gif', img_IMAGE_queue, "GIF", fps=10)
+    imageio.mimsave('/datahdd_8T/vla_pizza/ours/gifs/latest.gif', img_IMAGE_queue, "GIF", fps=10)
 
 
 

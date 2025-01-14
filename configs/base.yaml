@@ -2,7 +2,7 @@ common:
   # The number of historical images
   img_history_size: 2
   # The number of future actions to predict
-  action_chunk_size: 64
+  action_chunk_size: 16
   # The number of cameras to be used in the model
   num_cameras: 3
   # Dimension for state/action, we use the same space for both state and action

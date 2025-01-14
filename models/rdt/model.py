@@ -131,6 +131,22 @@ class RDT(nn.Module):
             param.data = param.data.to(self.dtype)
         for param in self.freq_embedder.parameters():
             param.data = param.data.to(self.dtype)
+            
+    def reconfig_horizon(self, new_horizon:int):
+        self.horizon = new_horizon
+        self.x_pos_embed = nn.Parameter(
+            torch.zeros(1, new_horizon+3, self.hidden_size))
+        # Initialize pos_embed by sin-cos embedding
+        x_pos_embed = get_multimodal_cond_pos_embed(
+            embed_dim=self.hidden_size,
+            mm_cond_lens=OrderedDict([
+                ('timestep', 1),
+                ('ctrl_freq', 1),
+                ('state', 1),
+                ('action', self.horizon),
+            ])
+        )
+        self.x_pos_embed.data.copy_(torch.from_numpy(x_pos_embed).float().unsqueeze(0))
         
 
     def forward(self, x, freq, t, lang_c, img_c, lang_mask=None, img_mask=None):

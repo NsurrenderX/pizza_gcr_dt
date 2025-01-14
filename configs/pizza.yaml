@@ -5,4 +5,4 @@ url: "http://127.0.0.1:7777/predict"
 task_id: 8
 franka:
   config: "franka.yml"
-
+padding: 6.28125

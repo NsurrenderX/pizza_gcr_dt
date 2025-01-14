@@ -580,19 +580,22 @@ def predict():
         'actions': trajectory
     }
     print(data_dict)
+    print(len(trajectory))
     return jsonify(data_dict)
 
 
 if __name__ == "__main__":
     device = 'cuda:0'
     pretrained_vision_encoder_name_or_path = "/datahdd_8T/vla_pizza/RDT_module_params/siglip-so400m-patch14-384/"
-    pretrained_model_name_or_path = "/datahdd_8T/vla_pizza/RDT_module_params/0106_first_try/1b/checkpoint-200000/"
+    pretrained_model_name_or_path = "/datahdd_8T/vla_pizza/rdt_checkpoint/170M_2pipadding_1e4/checkpoint-130000/"
 
     print("Loading Model from: ", pretrained_model_name_or_path)
     print("Loading vision encoder from: ", pretrained_vision_encoder_name_or_path)
     vision_encoder = SiglipVisionTower(vision_tower=pretrained_vision_encoder_name_or_path, args=None).to(device=device, dtype=torch.bfloat16)
     image_processor = vision_encoder.image_processor
-    rdt = RDTRunner.from_pretrained(pretrained_model_name_or_path).to(device=device, dtype=torch.bfloat16)
+    rdt = RDTRunner.from_pretrained(pretrained_model_name_or_path)
+    rdt.reconfig_horizon(16)
+    rdt = rdt.to(device=device, dtype=torch.bfloat16)
     # for param in rdt.lang_adaptor.parameters():
     #     print(param.dtype)
     # print(rdt.lang_adaptor.parameters())
