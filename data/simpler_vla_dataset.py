@@ -211,7 +211,7 @@ class HDF5VLADataset:
     
         # Get each episode's len
         episode_lens = []
-        for file_path in self.file_paths:
+        for file_path in tqdm(self.file_paths, desc="Generating weights from raw data"):
             valid, res = self.parse_hdf5_file_state_only(file_path)
             _len = res['state'].shape[0] if valid else 0
             episode_lens.append(_len)
