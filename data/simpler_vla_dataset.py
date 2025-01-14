@@ -209,12 +209,12 @@ class HDF5VLADataset:
         self.STATE_DIM = config['common']['state_dim']
     
         # Get each episode's len
-        # episode_lens = []
-        # for file_path in self.file_paths:
-        #     valid, res = self.parse_hdf5_file_state_only(file_path)
-        #     _len = res['state'].shape[0] if valid else 0
-        #     episode_lens.append(_len)
-        # self.episode_sample_weights = np.array(episode_lens) / np.sum(episode_lens)
+        episode_lens = []
+        for file_path in self.file_paths:
+            valid, res = self.parse_hdf5_file_state_only(file_path)
+            _len = res['state'].shape[0] if valid else 0
+            episode_lens.append(_len)
+        self.episode_sample_weights = np.array(episode_lens) / np.sum(episode_lens)
     
     def __len__(self):
         return len(self.file_paths)
@@ -237,8 +237,8 @@ class HDF5VLADataset:
         """
         while True:
             if index is None:
-                file_path = np.random.choice(self.file_paths)
-                # file_path = np.random.choice(self.file_paths, p=self.episode_sample_weights)
+                # file_path = np.random.choice(self.file_paths)
+                file_path = np.random.choice(self.file_paths, p=self.episode_sample_weights)
             else:
                 file_path = self.file_paths[index]
             valid, sample = self.parse_hdf5_file(file_path) \
@@ -455,59 +455,51 @@ class HDF5VLADataset:
                     "action": ndarray,          # action[:], (T, STATE_DIM).
                 } or None if the episode is invalid.
         """
-        with h5py.File(file_path, 'r') as f:
-            qpos = f['observations']['qpos'][:]
-            num_steps = qpos.shape[0]
-            # [Optional] We drop too-short episode
-            if num_steps < 128:
-                return False, None
+        # Load both action.npy
+        action_path = os.path.join(file_path, 'action.npy')
+
+        actions = np.load(action_path)
+        
+        num_steps = len(actions)
+        # [Optional] We drop too-short episode
+        if num_steps < 30:
+            return False, None
+        
+        init_coordinate = np.zeros_like(actions[0]).astype(np.float32)
+        
+        def get_state_from_action(id):
+            current_coordinate = np.zeros((1, 10)).astype(np.float32)
+            init_rotmat = convert_euler_to_rotation_matrix(init_coordinate[3:6])
+            current_rotmat = init_rotmat
+            for i in range(id):
+                for k in range(3):
+                    current_coordinate[k] += actions[i][k]
+                rotmat = convert_euler_to_rotation_matrix(actions[i][3:6])
+                current_rotmat = rotmat @ current_rotmat
             
-            # [Optional] We skip the first few still steps
-            EPS = 1e-2
-            # Get the idx of the first qpos whose delta exceeds the threshold
-            qpos_delta = np.abs(qpos - qpos[0:1])
-            indices = np.where(np.any(qpos_delta > EPS, axis=1))[0]
-            if len(indices) > 0:
-                first_idx = indices[0]
-            else:
-                raise ValueError("Found no qpos that exceeds the threshold.")
+            current_ortho6d = compute_ortho6d_from_rotation_matrix(current_rotmat)
+            current_coordinate[3:9] = current_ortho6d
+            current_coordinate[9] = actions[id][6]
+            return current_coordinate
+        qpos = np.zeros((actions.shape[0] + 1, 10)).astype(np.float32)
+        
+        for i in range(1, actions.shape[0] + 1):
+            qpos[i] = get_state_from_action(i-1)
             
-            # Rescale gripper to [0, 1]
-            qpos = qpos / np.array(
-               [[1, 1, 1, 1, 1, 1, 4.7908, 1, 1, 1, 1, 1, 1, 4.7888]] 
-            )
-            target_qpos = f['action'][:] / np.array(
-               [[1, 1, 1, 1, 1, 1, 11.8997, 1, 1, 1, 1, 1, 1, 13.9231]] 
-            )
-            
-            # Parse the state and action
-            state = qpos[first_idx-1:]
-            action = target_qpos[first_idx-1:]
-            
-            # Fill the state/action into the unified vector
-            def fill_in_state(values):
-                # Target indices corresponding to your state space
-                # In this example: 6 joints + 1 gripper for each arm
-                UNI_STATE_INDICES = [
-                    STATE_VEC_IDX_MAPPING[f"left_arm_joint_{i}_pos"] for i in range(6)
-                ] + [
-                    STATE_VEC_IDX_MAPPING["left_gripper_open"]
-                ] + [
-                    STATE_VEC_IDX_MAPPING[f"right_arm_joint_{i}_pos"] for i in range(6)
-                ] + [
-                    STATE_VEC_IDX_MAPPING["right_gripper_open"]
-                ]
-                uni_vec = np.zeros(values.shape[:-1] + (self.STATE_DIM,))
-                uni_vec[..., UNI_STATE_INDICES] = values
-                return uni_vec
-            state = fill_in_state(state)
-            action = fill_in_state(action)
-            
-            # Return the resulting sample
-            return True, {
-                "state": state,
-                "action": action
-            }
+        target_qos = np.zeros((actions.shape[0], 10)).astype(np.float32)
+        for i in range(actions.shape[0]):
+            target_qos[i][:3] = actions[i][:3]
+            euler = actions[i][3:6]
+            rotmat = convert_euler_to_rotation_matrix(euler)
+            ortho6d = compute_ortho6d_from_rotation_matrix(rotmat)
+            target_qos[i][3:9] = ortho6d
+            target_qos[i][9] = actions[i][6]
+        
+        return True, {
+            "state": qpos,
+            "action": target_qos
+        }
+        
 
 if __name__ == "__main__":
     ds = HDF5VLADataset()
