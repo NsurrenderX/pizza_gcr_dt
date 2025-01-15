@@ -312,8 +312,8 @@ def train(args, logger):
         rdt, optimizer, train_dataloader, sample_dataloader, lr_scheduler                   
     )
     # print(rdt)
-    for param in rdt.parameters():
-        print(param, param.dtype)
+    # for param in rdt.parameters():
+    #     print(param, param.dtype)
 
     ema_rdt.to(accelerator.device, dtype=weight_dtype)                                                                             
 

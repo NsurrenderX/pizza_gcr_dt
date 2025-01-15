@@ -190,12 +190,16 @@ class HDF5VLADataset:
         # [Modify] The path to the HDF5 dataset directory
         # Each HDF5 file contains one episode
         HDF5_DIR = "/mnt/wangxiaofa/robot_dataset/simpler_data/"
-        # HDF5_DIR = "/data_16T/simpler/simpler_data/"
+        # HDF5_DIR = "/datassd_1T/dataset_cache/simpler_data"
+        WEIGHT_FILE = "episode_sample_weights.npy"
         self.DATASET_NAME = "simpler"
         self.emb_path = ""
         
         self.file_paths = []
         hdf5_list = os.listdir(HDF5_DIR)
+        
+        if WEIGHT_FILE in hdf5_list:
+            hdf5_list.remove(WEIGHT_FILE)
         for task_dir in tqdm(hdf5_list, desc="Loading datalist from dataset"):
             task_dir_path = os.path.join(HDF5_DIR, task_dir)
             task_list = os.listdir(task_dir_path)
@@ -211,12 +215,18 @@ class HDF5VLADataset:
         self.STATE_DIM = config['common']['state_dim']
     
         # Get each episode's len
-        episode_lens = []
-        for file_path in tqdm(self.file_paths, desc="Generating weights from raw data"):
-            valid, res = self.parse_hdf5_file_state_only(file_path)
-            _len = res['state'].shape[0] if valid else 0
-            episode_lens.append(_len)
-        self.episode_sample_weights = np.array(episode_lens) / np.sum(episode_lens)
+        if os.path.exists(os.path.join(HDF5_DIR, WEIGHT_FILE)):
+            print("Loading episode sample weights from cache")
+            # self.episode_sample_weights = np.load(os.path.join(HDF5_DIR, "episode_sample_weights.npy"))
+            self.episode_sample_weights = np.load(os.path.join(HDF5_DIR, WEIGHT_FILE))
+        else:
+            print("Generating episode sample weights from raw data")
+            episode_lens = []
+            for file_path in tqdm(self.file_paths, desc="Generating weights from raw data"):
+                valid, res = self.parse_hdf5_file_state_only(file_path)
+                _len = res['state'].shape[0] if valid else 0
+                episode_lens.append(_len)
+            self.episode_sample_weights = np.array(episode_lens) / np.sum(episode_lens)
     
     def __len__(self):
         return len(self.file_paths)
@@ -533,12 +543,23 @@ class HDF5VLADataset:
 
 if __name__ == "__main__":
     ds = HDF5VLADataset()
-    abnormal_shape =0
-    for i in range(len(ds)):
-        print(f"Processing episode {i}/{len(ds)}...")
-        sample = ds.get_item(i)
-        print(sample['cam_right_wrist'].shape[0], sample['cam_right_wrist_mask'].shape[0], abnormal_shape)
-        if (sample['cam_right_wrist'].shape[0] != 2) or (sample['cam_right_wrist_mask'].shape[0] != 2):
-            abnormal_shape += 1
-    print(abnormal_shape)
+    print(ds.episode_sample_weights)
+    # weight_path = '/datassd_1T/dataset_cache/simpler_data/episode_sample_weights_test.npy'
+    # episode_sample_weights = np.load(weight_path)
+    
+    # print(np.equal(ds.episode_sample_weights, episode_sample_weights))
+    # print((ds.episode_sample_weights == episode_sample_weights).all())
+    # diff_weights = ds.episode_sample_weights - episode_sample_weights
+    # # absloute value of diff weights
+    # diff_weights = np.abs(diff_weights)
+    # print(np.max(diff_weights))
+    # np.save(weight_path, ds.episode_sample_weights)
+    # abnormal_shape =0
+    # for i in range(len(ds)):
+    #     print(f"Processing episode {i}/{len(ds)}...")
+    #     sample = ds.get_item(i)
+    #     print(sample['cam_right_wrist'].shape[0], sample['cam_right_wrist_mask'].shape[0], abnormal_shape)
+    #     if (sample['cam_right_wrist'].shape[0] != 2) or (sample['cam_right_wrist_mask'].shape[0] != 2):
+    #         abnormal_shape += 1
+    # print(abnormal_shape)
         
