@@ -4,7 +4,7 @@ export NCCL_SOCKET_IFNAME=en,eth,em,bond,ib #bond0
 export NCCL_DEBUG=INFO
 export NCCL_NVLS_ENABLE=0
 
-export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
+# export PRETRAIN_MODEL_PATH="/mnt/wangxiaofa/RDT_module_params/rdt_param/rdt-170m/"
 
 export VISION_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/siglip-so400m-patch14-384"
 export TEXT_ENCODER_NAME="/mnt/wangxiaofa/RDT_module_params/rdt_param/t5-v1_1-xxl"
